@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Stock_Management_API.Entities;
 using System;
 using System.IO;
@@ -51,7 +52,10 @@ namespace Stock_Management_API.Controllers
                 using (var memoryStream = new MemoryStream())
                 {
                     await file.CopyToAsync(memoryStream);
+                    memoryStream.Position = 0;
                     byte[] imageData = memoryStream.ToArray();
+
+                    Console.WriteLine($"Image data length: {imageData.Length}");
 
                     var image = new Image
                     {
@@ -63,7 +67,7 @@ namespace Stock_Management_API.Controllers
                     _context.Images.Add(image);
                     await _context.SaveChangesAsync();
 
-                    return CreatedAtAction(nameof(GetImage), new { id = image.Id }, image);
+                    return image;
                 }
             }
             catch (Exception ex)
@@ -71,5 +75,44 @@ namespace Stock_Management_API.Controllers
                 return StatusCode(500, $"Error: {ex.Message}");
             }
         }
+
+        // DELETE: api/Image/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Image>> DeleteImage(int id)
+        {
+            var image = await _context.Images.FindAsync(id);
+            if (image == null)
+            {
+                return NotFound("Image not found");
+            }
+
+            try
+            {
+                _context.Images.Remove(image);
+
+                // Remove the image from the related StockItem's Images collection
+                var stockItem = await _context.StockItems
+                    .Include(si => si.Images)
+                    .FirstOrDefaultAsync(si => si.Images.Any(i => i.Id == id));
+
+                if (stockItem != null)
+                {
+                    var imageToRemove = stockItem.Images.FirstOrDefault(i => i.Id == id);
+                    if (imageToRemove != null)
+                    {
+                        stockItem.Images.Remove(imageToRemove);
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                return image;
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
+        }
+
     }
 }

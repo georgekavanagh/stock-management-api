@@ -14,8 +14,7 @@ public partial class Image
     [StringLength(maximumLength: 255)]
     public string? Description { get; set; }
 
-    [Required]
-    public byte[] ImageData { get; set; }
+    public byte[]? ImageData { get; set; }
     public int StockItemId { get; set; }
 
     [JsonIgnore]

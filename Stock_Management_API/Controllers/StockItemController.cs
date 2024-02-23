@@ -65,7 +65,11 @@ public class StockItemsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<StockItem>> GetStockItem(int id)
     {
-        var stockItem = await _context.StockItems.FindAsync(id);
+       
+        var stockItem = await _context.StockItems
+            .Include(s => s.Accessories)
+            .Include(s => s.Images)
+            .FirstOrDefaultAsync(s => s.Id == id);
 
         if (stockItem == null)
         {
@@ -89,14 +93,37 @@ public class StockItemsController : ControllerBase
 
     // PUT: api/StockItems/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutStockItem(int id, StockItem stockItem)
+    public async Task<ActionResult<StockItem>> PutStockItem(int id, StockItem stockItem)
     {
         if (id != stockItem.Id)
         {
             return BadRequest();
         }
 
-        _context.Entry(stockItem).State = EntityState.Modified;
+        var existingStockItem = await _context.StockItems
+            .Include(s => s.Accessories)
+            .Include(s => s.Images)
+            .FirstOrDefaultAsync(s => s.Id == id);
+
+        if (existingStockItem == null)
+        {
+            return NotFound();
+        }
+
+        // Update properties of existingStockItem with values from stockItem
+        var stockItemProperties = typeof(StockItem).GetProperties();
+        foreach (var property in stockItemProperties)
+        {
+            // Exclude Id and other properties that should not be updated
+            if (property.Name != "Id" && property.Name != "Dtcreated" && property.CanWrite)
+            {
+                var value = property.GetValue(stockItem);
+                property.SetValue(existingStockItem, value);
+            }
+        }
+
+        // Modify Dtupdated field before saving
+        existingStockItem.Dtupdated = DateTime.Now;
 
         try
         {
@@ -114,7 +141,7 @@ public class StockItemsController : ControllerBase
             }
         }
 
-        return NoContent();
+        return Ok(existingStockItem);
     }
 
     // DELETE: api/StockItems/5
