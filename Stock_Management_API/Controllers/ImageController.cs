@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stock_Management_API.Entities;
-using System;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Stock_Management_API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ImageController : ControllerBase
@@ -54,8 +52,6 @@ namespace Stock_Management_API.Controllers
                     await file.CopyToAsync(memoryStream);
                     memoryStream.Position = 0;
                     byte[] imageData = memoryStream.ToArray();
-
-                    Console.WriteLine($"Image data length: {imageData.Length}");
 
                     var image = new Image
                     {

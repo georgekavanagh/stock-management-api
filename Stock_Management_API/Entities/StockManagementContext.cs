@@ -20,4 +20,6 @@ public partial class StockManagementContext : DbContext
     public DbSet<Image> Images { get; set; }
 
     public DbSet<StockItem> StockItems { get; set; }
+
+    public DbSet<User> Users { get; set; }
 }
