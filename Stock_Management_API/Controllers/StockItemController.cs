@@ -27,7 +27,7 @@ namespace Stock_Management_API.Controllers
                 [FromQuery] int pageSize = 10,
                 [FromQuery] string sortBy = "Id",
                 [FromQuery] string sortOrder = "asc",
-                [FromQuery] string regNoFilter = "",
+                [FromQuery] string regNo = "",
                 [FromQuery] string make = "",
                 [FromQuery] string model = "",
                 [FromQuery] string modelYear = "",
@@ -39,7 +39,7 @@ namespace Stock_Management_API.Controllers
             IQueryable<StockItem> query = _context.StockItems.Include(s => s.Accessories).Include(s => s.Images);
 
             // Apply filters
-            query = ApplyFilters(query, regNoFilter, make, model, modelYear, kms, colour, vinNo);
+            query = ApplyFilters(query, regNo, make, model, modelYear, kms, colour, vinNo);
 
             // Get total count before applying pagination
             int totalCount = await query.CountAsync();
