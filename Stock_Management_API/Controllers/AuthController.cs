@@ -25,19 +25,19 @@ namespace Stock_Management_API.Controllers
         {
             if (loginDto == null || string.IsNullOrWhiteSpace(loginDto.Email) || string.IsNullOrWhiteSpace(loginDto.Password))
             {
-                return BadRequest("Invalid credentials1");
+                return BadRequest("Invalid credentials");
             }
 
             var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
             if (dbUser == null)
             {
-                return Unauthorized("Invalid credentials2");
+                return Unauthorized("Invalid credentials");
             }
 
             if (!VerifyPassword(loginDto.Password, dbUser.PasswordHash))
             {
-                return Unauthorized("Invalid credentials3");
+                return Unauthorized("Invalid credentials");
             }
 
             var token = _authService.GenerateToken(dbUser);
